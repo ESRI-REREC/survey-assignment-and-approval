@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en" class="calcite-mode-light">
+	<head>
+		<meta charset="utf-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+		<title>Project · Survey Assignment &amp; Approval</title>
+
+		<!-- Calcite Design System -->
+		<link
+			rel="stylesheet"
+			href="https://js.arcgis.com/calcite-components/2.13.2/calcite.css" />
+		<script
+			type="module"
+			src="https://js.arcgis.com/calcite-components/2.13.2/calcite.esm.js"></script>
+
+		<link rel="stylesheet" href="styles.css" />
+	</head>
+
+	<body>
+		<calcite-shell>
+			<calcite-panel id="project-panel">
+				<calcite-action
+					slot="header-actions-start"
+					icon="chevron-left"
+					text="Back to projects"
+					id="back-btn"></calcite-action>
+
+				<div slot="header-content" class="project-heading">
+					<span class="project-title" id="project-title">Loading…</span>
+					<span class="project-ref" id="project-ref"></span>
+				</div>
+
+				<calcite-chip
+					slot="header-actions-end"
+					id="status-chip"
+					scale="s"
+					kind="neutral"
+					appearance="outline"
+					hidden></calcite-chip>
+
+				<div class="tab-body">
+					<div id="overview-sections"></div>
+				</div>
+			</calcite-panel>
+
+			<calcite-alert
+				id="app-alert"
+				auto-close
+				auto-close-duration="medium"
+				scale="m"
+				slot="alerts">
+				<div slot="title" id="alert-title"></div>
+				<div slot="message" id="alert-message"></div>
+			</calcite-alert>
+		</calcite-shell>
+
+		<calcite-scrim id="boot-scrim" loading></calcite-scrim>
+
+		<script src="config.js"></script>
+		<script src="auth.js"></script>
+		<script type="module" src="detail.js"></script>
+	</body>
+</html>

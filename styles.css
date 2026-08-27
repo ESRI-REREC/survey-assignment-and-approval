@@ -1,0 +1,135 @@
+html,
+body {
+	margin: 0;
+	padding: 0;
+	height: 100%;
+	width: 100%;
+	font-family: var(--calcite-sans-family, "Avenir Next", "Helvetica Neue", sans-serif);
+}
+
+calcite-shell {
+	height: 100%;
+}
+
+/* ---- tabs fill chain --------------------------------------------------- *
+ * calcite-tabs fills the panel; each tab fills the content region so the
+ * table inside stretches to the full available width and height. */
+
+calcite-tabs {
+	inline-size: 100%;
+	block-size: 100%;
+}
+
+calcite-tabs::part(content) {
+	flex: 1 1 auto;
+	min-block-size: 0;
+}
+
+calcite-tab {
+	block-size: 100%;
+}
+
+/* Each tab lays out as a column: filter bar (auto) + table (fills rest). */
+.tab-panel {
+	display: flex;
+	flex-direction: column;
+	block-size: 100%;
+	min-block-size: 0;
+}
+
+.table-wrap {
+	position: relative;
+	flex: 1;
+	min-height: 0;
+}
+
+arcgis-feature-table {
+	height: 100%;
+	width: 100%;
+	display: block;
+}
+
+/* Rows read as actionable — clicking one opens the project. */
+arcgis-feature-table [role="row"] {
+	cursor: pointer;
+}
+
+/* ---- applied filters bar ----------------------------------------------- */
+
+.active-filters {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	padding: 0.5rem 0.75rem;
+	border-block-end: 1px solid var(--calcite-color-border-3);
+	background: var(--calcite-color-foreground-2);
+}
+
+.active-filters[hidden] {
+	display: none;
+}
+
+.active-filters .af-label {
+	font-size: 0.8rem;
+	font-weight: 500;
+	color: var(--calcite-color-text-3);
+}
+
+.filter-chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.35rem;
+	flex: 1;
+}
+
+.clear-all-filters {
+	margin-inline-start: auto;
+}
+
+/* ---- details page ------------------------------------------------------ */
+
+.project-heading {
+	display: flex;
+	flex-direction: column;
+	line-height: 1.25;
+	gap: 0.15rem;
+}
+
+.project-title {
+	font-size: 1.15rem;
+	font-weight: 600;
+	color: var(--calcite-color-text-1);
+}
+
+.project-ref {
+	font-size: 0.8rem;
+	color: var(--calcite-color-text-3);
+}
+
+.tab-body {
+	padding: 1rem;
+}
+
+.detail-list {
+	display: grid;
+	grid-template-columns: minmax(10rem, 14rem) 1fr;
+	gap: 0.5rem 1.5rem;
+	margin: 0;
+}
+
+.detail-list dt {
+	font-weight: 500;
+	color: var(--calcite-color-text-3);
+}
+
+.detail-list dd {
+	margin: 0;
+	color: var(--calcite-color-text-1);
+}
+
+/* ---- boot scrim -------------------------------------------------------- */
+
+#boot-scrim[hidden] {
+	display: none;
+}
