@@ -15,7 +15,7 @@ window.APP_CONFIG = {
 
 	// Token server (../server). Holds the credentials, exposes GET /api/token.
 	// The token is referer-bound — serve these pages from the matching origin.
-	serverUrl: "http://localhost:3000",
+	serverUrl: "https://dev-server-rerec-poc.vercel.app",
 
 	// Facilities layer — source of the surveyor list. The assignment sheet's
 	// Surveyor <select> is populated from this field's coded-value domain.
@@ -28,7 +28,8 @@ window.APP_CONFIG = {
 
 	// Mock survey-assignment endpoint. The sheet POSTs the assignment here as
 	// query params (no real backend yet — the request is best-effort).
-	assignmentEndpoint: "http://localhost:3000/api/survey-assignments",
+	assignmentEndpoint:
+		"https://dev-server-rerec-poc.vercel.app/api/survey-assignments",
 
 	/* Columns rendered in every tab's table, in order — same as the wayleave
 	 * projects list. Each column's ⋯ menu also gets a Filter… item. */
