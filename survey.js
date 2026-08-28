@@ -84,30 +84,42 @@ function buildPane(tab) {
   };
 }
 
-/** Column templates: each header ⋯ menu gets Filter… / Clear filter. */
+/** Columns for a tab: its own `columns` override, or the shared default. */
+function columnsFor(tabId) {
+  return controllers[tabId].tab.columns || CFG.projectColumns;
+}
+
+/** Column templates. Text-filterable columns get Filter… / Clear filter in
+ * their ⋯ menu; others (e.g. date fields) keep just the built-in Sort. */
 function buildTableTemplate(tabId) {
   return {
-    columnTemplates: CFG.projectColumns.map((c) => ({
-      type: "field",
-      fieldName: c.field,
-      label: c.label,
-      width: c.width,
-      autoWidth: false,
-      menuConfig: {
-        items: [
-          {
-            label: "Filter…",
-            iconClass: "esri-icon-filter",
-            clickFunction: () => promptFilter(tabId, c.field, c.label)
-          },
-          {
-            label: "Clear filter",
-            iconClass: "esri-icon-close",
-            clickFunction: () => applyFilter(tabId, c.field, null)
-          }
-        ]
+    columnTemplates: columnsFor(tabId).map((c) => {
+      const template = {
+        type: "field",
+        fieldName: c.field,
+        label: c.label,
+        width: c.width,
+        autoWidth: false
+      };
+      if (c.dateFormat) template.format = { dateFormat: c.dateFormat };
+      if (c.filterable !== false) {
+        template.menuConfig = {
+          items: [
+            {
+              label: "Filter…",
+              iconClass: "esri-icon-filter",
+              clickFunction: () => promptFilter(tabId, c.field, c.label)
+            },
+            {
+              label: "Clear filter",
+              iconClass: "esri-icon-close",
+              clickFunction: () => applyFilter(tabId, c.field, null)
+            }
+          ]
+        };
       }
-    }))
+      return template;
+    })
   };
 }
 
@@ -218,7 +230,7 @@ function renderChips(tabId) {
   ctrl.barEl.hidden = entries.length === 0;
 
   entries.forEach(([field, value]) => {
-    const col = CFG.projectColumns.find((c) => c.field === field);
+    const col = columnsFor(tabId).find((c) => c.field === field);
     const chip = document.createElement("calcite-chip");
     chip.setAttribute("closable", "");
     chip.setAttribute("scale", "s");

@@ -49,7 +49,17 @@ window.APP_CONFIG = {
       id: "unassigned",
       label: "Unassigned",
       // No surveyor assigned yet.
-      where: "surveyed_by IS NULL"
+      where: "surveyed_by IS NULL",
+      // Unassigned uses its own columns: no implementation status, plus the
+      // added date. (add_date is a date field, so it is not text-filterable.)
+      columns: [
+        { field: "name", label: "Project Name", width: 200 },
+        { field: "reference_number", label: "Reference No.", width: 150 },
+        { field: "add_date", label: "Added Date", width: 130, filterable: false, dateFormat: "short-date" },
+        { field: "funding_year", label: "Funding Year", width: 120 },
+        { field: "initiator_category", label: "Initiator Category", width: 170 },
+        { field: "funding_category", label: "Funding Category", width: 180 }
+      ]
     },
     {
       id: "in-progress",
