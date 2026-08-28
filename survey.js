@@ -22,6 +22,11 @@ const controllers = {}; // tabId -> { tab, barEl, chipsEl, tableEl, layer, activ
 /* The column being edited in the shared filter modal. */
 let filterTarget = null; // { tabId, field }
 
+/* Surveyor coded-value options (from the Facilities domain) + the row being
+ * assigned in the sheet. */
+let surveyorOptions = []; // [{ code, name }]
+let assignTarget = null; // { oid, name }
+
 /* ------------------------------------------------------------------------ *
  * Table construction
  * ------------------------------------------------------------------------ */
@@ -124,8 +129,15 @@ async function initTab(tabId) {
   ctrl.tableEl.layer = ctrl.layer;
 
   ctrl.tableEl.addEventListener("arcgisCellClick", (event) => {
+    const feature = featureFromCellEvent(event);
     const oid = objectIdFromCellEvent(event);
-    if (oid != null) goToDetails(oid);
+    if (oid == null) return;
+    // Unassigned rows open the assignment sheet; other tabs open the detail page.
+    if (tabId === "unassigned") {
+      openAssignSheet((feature && feature.attributes) || { objectid: oid });
+    } else {
+      goToDetails(oid);
+    }
   });
 }
 
@@ -222,24 +234,152 @@ function renderChips(tabId) {
  * Navigation
  * ------------------------------------------------------------------------ */
 
-function objectIdFromCellEvent(event) {
+function featureFromCellEvent(event) {
   const d = event.detail || {};
-  const feature =
+  return (
     d.feature ||
     d.graphic ||
     (d.item && d.item.feature) ||
-    (d.target && d.target.feature);
+    (d.target && d.target.feature) ||
+    null
+  );
+}
 
+function objectIdFromCellEvent(event) {
+  const feature = featureFromCellEvent(event);
   if (feature && feature.attributes) {
     const a = feature.attributes;
     return a.objectid ?? a.OBJECTID ?? a.ObjectId ?? null;
   }
+  const d = event.detail || {};
   if (d.objectId != null) return d.objectId;
   return null;
 }
 
 function goToDetails(oid) {
   window.location.href = "detail.html?oid=" + encodeURIComponent(oid);
+}
+
+/* ------------------------------------------------------------------------ *
+ * Assignment sheet (Unassigned tab)
+ * ------------------------------------------------------------------------ */
+
+/** Load the surveyor list from the Facilities coded-value domain and fill the
+ * Surveyor + Priority selects. */
+async function loadSurveyors() {
+  const layer = new FeatureLayer({ url: CFG.facilitiesLayerUrl });
+  await layer.load();
+  const field = layer.fields.find((f) => f.name === CFG.surveyorField);
+  const coded = (field && field.domain && field.domain.codedValues) || [];
+  surveyorOptions = coded.map((c) => ({ code: c.code, name: c.name }));
+
+  const surveyor = $("assign-surveyor");
+  surveyor.innerHTML = "";
+  surveyor.appendChild(makeOption("", "Select a surveyor…"));
+  surveyorOptions.forEach((s) => surveyor.appendChild(makeOption(s.code, s.name)));
+
+  const priority = $("assign-priority");
+  priority.innerHTML = "";
+  CFG.priorityOptions.forEach((p) => priority.appendChild(makeOption(p, p)));
+  priority.value = defaultPriority();
+}
+
+function makeOption(value, text) {
+  const opt = document.createElement("calcite-option");
+  opt.value = value;
+  opt.textContent = text;
+  return opt;
+}
+
+function defaultPriority() {
+  const list = CFG.priorityOptions;
+  return list[Math.floor(list.length / 2)] || list[0] || "";
+}
+
+function surveyorName(code) {
+  const s = surveyorOptions.find((x) => x.code === code);
+  return s ? s.name : code;
+}
+
+/** Open the assignment sheet for a project, with a clean form. */
+function openAssignSheet(attrs) {
+  const oid = attrs.objectid ?? attrs.OBJECTID;
+  assignTarget = {
+    oid,
+    name: attrs.name || "Project #" + oid,
+    ref: attrs.reference_number || ""
+  };
+  $("assign-subheading").textContent = assignTarget.name;
+  $("assign-surveyor").value = "";
+  $("assign-priority").value = defaultPriority();
+  $("assign-due").value = "";
+  $("assign-desc").value = "";
+  $("assign-sheet").open = true;
+}
+
+/** Wire the sheet's close / cancel / submit interactions once. */
+function wireAssignSheet() {
+  const close = () => ($("assign-sheet").open = false);
+  $("assign-close").addEventListener("click", close);
+  $("assign-cancel").addEventListener("click", close);
+  $("assign-submit").addEventListener("click", submitAssignment);
+}
+
+/** Validate (surveyor required) and submit the assignment to the server, which
+ * updates the Facilities task fields + the project's surveyed_by. */
+async function submitAssignment() {
+  const surveyorCode = $("assign-surveyor").value;
+  if (!surveyorCode) {
+    alertUser("Surveyor required", "Please select a surveyor to assign.", "warning");
+    if ($("assign-surveyor").setFocus) $("assign-surveyor").setFocus();
+    return;
+  }
+  if (!assignTarget || !assignTarget.ref) {
+    alertUser("Missing reference", "This project has no reference number to match.", "danger");
+    return;
+  }
+
+  const payload = {
+    reference_number: assignTarget.ref,
+    surveyor: surveyorCode,
+    surveyor_name: surveyorName(surveyorCode),
+    priority: $("assign-priority").value || "",
+    due_date: $("assign-due").value || "",
+    description: $("assign-desc").value || ""
+  };
+
+  const submit = $("assign-submit");
+  submit.loading = true;
+  try {
+    const res = await fetch(CFG.assignmentEndpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok || json.error) {
+      throw new Error(json.error || `Request failed (${res.status}).`);
+    }
+
+    $("assign-sheet").open = false;
+    alertUser(
+      "Survey assigned",
+      `${assignTarget.name} assigned to ${surveyorName(surveyorCode)}.`,
+      "success"
+    );
+    refreshTables(); // the project leaves Unassigned once surveyed_by is set
+  } catch (err) {
+    alertUser("Assignment failed", err.message, "danger");
+  } finally {
+    submit.loading = false;
+  }
+}
+
+/** Re-query every initialised tab table (e.g. after an assignment). */
+function refreshTables() {
+  Object.values(controllers).forEach((c) => {
+    if (c.ready && c.layer) c.layer.refresh();
+  });
 }
 
 /* ------------------------------------------------------------------------ *
@@ -266,9 +406,11 @@ async function boot() {
 
     await customElements.whenDefined("arcgis-feature-table");
 
-    // Build every pane, wire the shared modal.
+    // Build every pane, wire the shared modal + assignment sheet.
     CFG.surveyTabs.forEach(buildPane);
     wireFilterDialog();
+    wireAssignSheet();
+    await loadSurveyors();
 
     // Lazily init a tab's table the first time its title is clicked. A table
     // in a hidden tab has no size, so we defer to the moment it is shown.

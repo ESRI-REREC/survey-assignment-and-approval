@@ -17,6 +17,20 @@ window.APP_CONFIG = {
   // The token is referer-bound — serve these pages from the matching origin.
   serverUrl: "https://dev-server-rerec-poc.vercel.app",
 
+  // Facilities layer — source of the surveyor list. The assignment sheet's
+  // Surveyor <select> is populated from this field's coded-value domain.
+  facilitiesLayerUrl:
+    "https://development.esriea.com/server/rest/services/Hosted/Facilities/FeatureServer/0",
+  surveyorField: "esritask_assignee",
+
+  // Priority options for the assignment sheet.
+  priorityOptions: ["Low", "Medium", "High"],
+
+  // Mock survey-assignment endpoint. The sheet POSTs the assignment here as
+  // query params (no real backend yet — the request is best-effort).
+  assignmentEndpoint:
+    "https://dev-server-rerec-poc.vercel.app/api/survey-assignments",
+
   /* Columns rendered in every tab's table, in order — same as the wayleave
    * projects list. Each column's ⋯ menu also gets a Filter… item. */
   projectColumns: [

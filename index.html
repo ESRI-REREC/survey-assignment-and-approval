@@ -73,6 +73,61 @@
 			</calcite-alert>
 		</calcite-shell>
 
+		<!-- Assignment sheet — opened when an Unassigned row is clicked. -->
+		<calcite-sheet
+			id="assign-sheet"
+			position="inline-end"
+			width-scale="m"
+			aria-labelledby="assign-heading">
+			<calcite-panel>
+				<div slot="header-content" class="project-heading">
+					<span class="project-title" id="assign-heading">
+						Assign surveyor
+					</span>
+					<span class="project-ref" id="assign-subheading"></span>
+				</div>
+				<calcite-action
+					slot="header-actions-end"
+					icon="x"
+					text="Close"
+					id="assign-close"></calcite-action>
+
+				<div class="sheet-body">
+					<calcite-label>
+						Surveyor <span class="req">*</span>
+						<calcite-select id="assign-surveyor"></calcite-select>
+					</calcite-label>
+					<calcite-label>
+						Priority
+						<calcite-select id="assign-priority"></calcite-select>
+					</calcite-label>
+					<calcite-label>
+						Due date
+						<calcite-input-date-picker
+							id="assign-due"></calcite-input-date-picker>
+					</calcite-label>
+					<calcite-label>
+						Description
+						<calcite-text-area
+							id="assign-desc"
+							placeholder="Optional notes for the surveyor…"></calcite-text-area>
+					</calcite-label>
+				</div>
+
+				<calcite-button
+					slot="footer-start"
+					appearance="outline"
+					kind="neutral"
+					width="half"
+					id="assign-cancel">
+					Cancel
+				</calcite-button>
+				<calcite-button slot="footer-end" width="half" id="assign-submit">
+					Assign
+				</calcite-button>
+			</calcite-panel>
+		</calcite-sheet>
+
 		<!-- Shared column filter modal (opened from a column's ⋯ → Filter…). -->
 		<calcite-modal
 			id="filter-dialog"
