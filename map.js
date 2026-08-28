@@ -64,10 +64,10 @@ async function fetchProject(oid) {
  * ------------------------------------------------------------------------ */
 
 function renderInfo() {
-  $("info-title").textContent = attrs.name || "Untitled project";
-  document.title = (attrs.name || "Project") + " · Survey Map";
+  $("info-title").textContent = attrs.project_name || "Untitled project";
+  document.title = (attrs.project_name || "Project") + " · Survey Map";
 
-  const ref = attrs.reference_number;
+  const ref = attrs.project_reference_number;
   $("info-ref").textContent = ref ? "Ref: " + ref : "";
 
   const status = attrs.implementation_status;
@@ -209,7 +209,7 @@ function initMap() {
   const onReady = async () => {
     try {
       await loadAssetLayers(mapEl.map);
-      await centerOnFacility(mapEl.view, attrs.reference_number);
+      await centerOnFacility(mapEl.view, attrs.project_reference_number);
     } catch (err) {
       alertUser("Map error", err.message, "danger");
     }

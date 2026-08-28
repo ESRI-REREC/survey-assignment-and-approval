@@ -79,8 +79,8 @@ export function openAssignSheet(attrs) {
   const oid = attrs.objectid ?? attrs.OBJECTID;
   assignTarget = {
     oid,
-    name: attrs.name || "Project #" + oid,
-    ref: attrs.reference_number || ""
+    name: attrs.project_name || "Project #" + oid,
+    ref: attrs.project_reference_number || ""
   };
   $("assign-subheading").textContent = assignTarget.name;
   $("assign-surveyor").value = "";

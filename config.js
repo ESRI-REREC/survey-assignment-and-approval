@@ -11,7 +11,7 @@ window.APP_CONFIG = {
 
 	// The Projects hosted table (non-spatial). Row per wayleave project.
 	projectsLayerUrl:
-		"https://development.esriea.com/server/rest/services/Hosted/Projects/FeatureServer/0",
+		"https://development.esriea.com/server/rest/services/Hosted/electrification_projects/FeatureServer/0",
 
 	// Token server (../server). Holds the credentials, exposes GET /api/token.
 	// The token is referer-bound — serve these pages from the matching origin.
@@ -52,8 +52,8 @@ window.APP_CONFIG = {
 	/* Columns rendered in every tab's table, in order — same as the wayleave
 	 * projects list. Each column's ⋯ menu also gets a Filter… item. */
 	projectColumns: [
-		{ field: "name", label: "Project Name", width: 200 },
-		{ field: "reference_number", label: "Reference No.", width: 150 },
+		{ field: "project_name", label: "Project Name", width: 200 },
+		{ field: "project_reference_number", label: "Reference No.", width: 150 },
 		{
 			field: "implementation_status",
 			label: "Implementation Status",
@@ -75,8 +75,8 @@ window.APP_CONFIG = {
 			// Unassigned uses its own columns: no implementation status, plus the
 			// added date. (add_date is a date field, so it is not text-filterable.)
 			columns: [
-				{ field: "name", label: "Project Name", width: 200 },
-				{ field: "reference_number", label: "Reference No.", width: 150 },
+				{ field: "project_name", label: "Project Name", width: 200 },
+				{ field: "project_reference_number", label: "Reference No.", width: 150 },
 				{
 					field: "add_date",
 					label: "Added Date",
@@ -103,8 +103,8 @@ window.APP_CONFIG = {
 			// In progress drops Implementation Status and shows the assigned
 			// surveyor (surveyed_by) instead — filterable like the other text cols.
 			columns: [
-				{ field: "name", label: "Project Name", width: 200 },
-				{ field: "reference_number", label: "Reference No.", width: 150 },
+				{ field: "project_name", label: "Project Name", width: 200 },
+				{ field: "project_reference_number", label: "Reference No.", width: 150 },
 				{ field: "surveyed_by", label: "Surveyed By", width: 160 },
 				{ field: "funding_year", label: "Funding Year", width: 120 },
 				{ field: "initiator_category", label: "Initiator Category", width: 170 },
@@ -127,7 +127,7 @@ window.APP_CONFIG = {
 			title: "Project Details",
 			icon: "information",
 			fields: [
-				{ field: "reference_number", label: "Reference Number" },
+				{ field: "project_reference_number", label: "Reference Number" },
 				{ field: "implementation_status", label: "Implementation Status" },
 				{ field: "funding_year", label: "Funding Year" },
 				{ field: "initiator_category", label: "Initiator Category" },

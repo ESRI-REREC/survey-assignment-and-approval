@@ -131,7 +131,7 @@ async function initTable() {
   ctrl.layer = new FeatureLayer({
     url: CFG.projectsLayerUrl,
     outFields: ["*"],
-    displayField: "name",
+    displayField: "project_name",
     definitionExpression: ctrl.page.where
   });
   await ctrl.layer.load();
