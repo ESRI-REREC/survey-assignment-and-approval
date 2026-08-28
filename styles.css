@@ -11,26 +11,19 @@ calcite-shell {
 	height: 100%;
 }
 
-/* ---- tabs fill chain --------------------------------------------------- *
- * calcite-tabs fills the panel; each tab fills the content region so the
- * table inside stretches to the full available width and height. */
+/* ---- pane fill chain --------------------------------------------------- *
+ * Each page shows a single table. The pane host fills the panel's content
+ * region so the filter bar + table stretch to the full width and height. */
 
-calcite-tabs {
-	inline-size: 100%;
-	block-size: 100%;
-}
-
-calcite-tabs::part(content) {
+.pane-host {
 	flex: 1 1 auto;
 	min-block-size: 0;
+	display: flex;
+	flex-direction: column;
 }
 
-calcite-tab {
-	block-size: 100%;
-}
-
-/* Each tab lays out as a column: filter bar (auto) + table (fills rest). */
-.tab-panel {
+/* The pane lays out as a column: filter bar (auto) + table (fills rest). */
+.pane-body {
 	display: flex;
 	flex-direction: column;
 	block-size: 100%;

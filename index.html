@@ -1,164 +1,17 @@
 <!doctype html>
-<html lang="en" class="calcite-mode-light">
+<html lang="en">
 	<head>
 		<meta charset="utf-8" />
-		<meta
-			name="viewport"
-			content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 		<title>Survey Assignment &amp; Approval</title>
-
-		<!-- Import map: lets the Map Components package resolve its internal bare
-		     `@arcgis/core/...` imports to the same 4.31 CDN build the page imports.
-		     MUST come before any module script. -->
-		<script type="importmap">
-			{
-				"imports": {
-					"@arcgis/core/": "https://js.arcgis.com/4.31/@arcgis/core/"
-				}
-			}
-		</script>
-
-		<!-- Calcite Design System -->
-		<link
-			rel="stylesheet"
-			href="https://js.arcgis.com/calcite-components/2.13.2/calcite.css" />
-		<script
-			type="module"
-			src="https://js.arcgis.com/calcite-components/2.13.2/calcite.esm.js"></script>
-
-		<!-- ArcGIS Maps SDK theme -->
-		<link
-			rel="stylesheet"
-			href="https://js.arcgis.com/4.31/esri/themes/light/main.css" />
-
-		<!-- ArcGIS Map Components (provides <arcgis-feature-table>). -->
-		<script
-			type="module"
-			src="https://js.arcgis.com/4.31/map-components/arcgis-map-components.esm.js"></script>
-
-		<link rel="stylesheet" href="styles.css" />
+		<!-- Each workflow tab is now its own page (unassigned.html, in-progress.html,
+		     completed.html). Unassigned is the default entry point. -->
+		<meta http-equiv="refresh" content="0; url=unassigned.html" />
+		<link rel="canonical" href="unassigned.html" />
 	</head>
-
 	<body>
-		<calcite-shell>
-			<calcite-panel heading="Survey Assignment &amp; Approval">
-				<calcite-tabs bordered>
-					<calcite-tab-nav slot="title-group">
-						<calcite-tab-title selected tab="unassigned"
-							>Unassigned</calcite-tab-title
-						>
-						<calcite-tab-title tab="in-progress"
-							>In progress</calcite-tab-title
-						>
-						<calcite-tab-title tab="completed">Completed</calcite-tab-title>
-						<calcite-tab-title tab="all">All</calcite-tab-title>
-					</calcite-tab-nav>
-
-					<!-- Panes are filled by survey.js (filter bar + table each). -->
-					<calcite-tab tab="unassigned" id="pane-unassigned"></calcite-tab>
-					<calcite-tab tab="in-progress" id="pane-in-progress"></calcite-tab>
-					<calcite-tab tab="completed" id="pane-completed"></calcite-tab>
-					<calcite-tab tab="all" id="pane-all"></calcite-tab>
-				</calcite-tabs>
-			</calcite-panel>
-
-			<calcite-alert
-				id="app-alert"
-				auto-close
-				auto-close-duration="medium"
-				scale="m"
-				slot="alerts">
-				<div slot="title" id="alert-title"></div>
-				<div slot="message" id="alert-message"></div>
-			</calcite-alert>
-		</calcite-shell>
-
-		<!-- Assignment sheet — opened when an Unassigned row is clicked. -->
-		<calcite-sheet
-			id="assign-sheet"
-			position="inline-end"
-			width-scale="m"
-			aria-labelledby="assign-heading">
-			<calcite-panel>
-				<div slot="header-content" class="project-heading">
-					<span class="project-title" id="assign-heading">
-						Assign surveyor
-					</span>
-					<span class="project-ref" id="assign-subheading"></span>
-				</div>
-				<calcite-action
-					slot="header-actions-end"
-					icon="x"
-					text="Close"
-					id="assign-close"></calcite-action>
-
-				<div class="sheet-body">
-					<calcite-label>
-						Surveyor <span class="req">*</span>
-						<calcite-select id="assign-surveyor"></calcite-select>
-					</calcite-label>
-					<calcite-label>
-						Priority
-						<calcite-select id="assign-priority"></calcite-select>
-					</calcite-label>
-					<calcite-label>
-						Due date
-						<calcite-input-date-picker
-							id="assign-due"></calcite-input-date-picker>
-					</calcite-label>
-					<calcite-label>
-						Description
-						<calcite-text-area
-							id="assign-desc"
-							placeholder="Optional notes for the surveyor…"></calcite-text-area>
-					</calcite-label>
-				</div>
-
-				<calcite-button
-					slot="footer-start"
-					appearance="outline"
-					kind="neutral"
-					width="half"
-					id="assign-cancel">
-					Cancel
-				</calcite-button>
-				<calcite-button slot="footer-end" width="half" id="assign-submit">
-					Assign
-				</calcite-button>
-			</calcite-panel>
-		</calcite-sheet>
-
-		<!-- Shared column filter modal (opened from a column's ⋯ → Filter…). -->
-		<calcite-modal
-			id="filter-dialog"
-			width-scale="s"
-			aria-labelledby="filter-dialog-heading">
-			<div slot="header" id="filter-dialog-heading">Filter</div>
-			<div slot="content">
-				<calcite-label>
-					<span id="filter-dialog-label">Value contains</span>
-					<calcite-input
-						id="filter-input"
-						placeholder="Type a value…"
-						clearable></calcite-input>
-				</calcite-label>
-			</div>
-			<calcite-button
-				slot="secondary"
-				appearance="outline"
-				kind="neutral"
-				id="filter-cancel">
-				Cancel
-			</calcite-button>
-			<calcite-button slot="primary" id="filter-apply">
-				Apply filter
-			</calcite-button>
-		</calcite-modal>
-
-		<calcite-scrim id="boot-scrim" loading></calcite-scrim>
-
-		<script src="config.js"></script>
-		<script src="auth.js"></script>
-		<script type="module" src="survey.js"></script>
+		<p>Redirecting to <a href="unassigned.html">Unassigned surveys</a>…</p>
+		<script>
+			window.location.replace("unassigned.html");
+		</script>
 	</body>
 </html>

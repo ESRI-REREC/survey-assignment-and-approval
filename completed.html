@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en" class="calcite-mode-light">
+	<head>
+		<meta charset="utf-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+		<title>Completed · Survey Assignment &amp; Approval</title>
+
+		<!-- Import map: lets the Map Components package resolve its internal bare
+		     `@arcgis/core/...` imports to the same 4.31 CDN build the page imports.
+		     MUST come before any module script. -->
+		<script type="importmap">
+			{
+				"imports": {
+					"@arcgis/core/": "https://js.arcgis.com/4.31/@arcgis/core/"
+				}
+			}
+		</script>
+
+		<!-- Calcite Design System -->
+		<link
+			rel="stylesheet"
+			href="https://js.arcgis.com/calcite-components/2.13.2/calcite.css" />
+		<script
+			type="module"
+			src="https://js.arcgis.com/calcite-components/2.13.2/calcite.esm.js"></script>
+
+		<!-- ArcGIS Maps SDK theme -->
+		<link
+			rel="stylesheet"
+			href="https://js.arcgis.com/4.31/esri/themes/light/main.css" />
+
+		<!-- ArcGIS Map Components (provides <arcgis-feature-table>). -->
+		<script
+			type="module"
+			src="https://js.arcgis.com/4.31/map-components/arcgis-map-components.esm.js"></script>
+
+		<link rel="stylesheet" href="styles.css" />
+	</head>
+
+	<body>
+		<calcite-shell>
+			<calcite-panel>
+				<!-- page.js fills this with a filter bar + table. -->
+				<div id="pane-completed" class="pane-host"></div>
+			</calcite-panel>
+
+			<calcite-alert
+				id="app-alert"
+				auto-close
+				auto-close-duration="medium"
+				scale="m"
+				slot="alerts">
+				<div slot="title" id="alert-title"></div>
+				<div slot="message" id="alert-message"></div>
+			</calcite-alert>
+		</calcite-shell>
+
+		<!-- Shared column filter modal (opened from a column's ⋯ → Filter…). -->
+		<calcite-modal
+			id="filter-dialog"
+			width-scale="s"
+			aria-labelledby="filter-dialog-heading">
+			<div slot="header" id="filter-dialog-heading">Filter</div>
+			<div slot="content">
+				<calcite-label>
+					<span id="filter-dialog-label">Value contains</span>
+					<calcite-input
+						id="filter-input"
+						placeholder="Type a value…"
+						clearable></calcite-input>
+				</calcite-label>
+			</div>
+			<calcite-button
+				slot="secondary"
+				appearance="outline"
+				kind="neutral"
+				id="filter-cancel">
+				Cancel
+			</calcite-button>
+			<calcite-button slot="primary" id="filter-apply">
+				Apply filter
+			</calcite-button>
+		</calcite-modal>
+
+		<calcite-scrim id="boot-scrim" loading></calcite-scrim>
+
+		<script src="config.js"></script>
+		<script src="auth.js"></script>
+		<script type="module" src="completed.js"></script>
+	</body>
+</html>

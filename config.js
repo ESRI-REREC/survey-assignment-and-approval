@@ -46,9 +46,9 @@ window.APP_CONFIG = {
 		{ field: "funding_category", label: "Funding Category", width: 180 }
 	],
 
-	/* The four workflow tabs. `where` is the base definitionExpression that
-	 * always applies for that tab; column filters are AND-ed on top of it. */
-	surveyTabs: [
+	/* The survey workflow pages. `where` is the base definitionExpression that
+	 * always applies for that page; column filters are AND-ed on top of it. */
+	surveyPages: [
 		{
 			id: "unassigned",
 			label: "Unassigned",
@@ -90,11 +90,6 @@ window.APP_CONFIG = {
 			where:
 				"survey_completion_date IS NOT NULL AND surveyed_by IS NOT NULL AND " +
 				"survey_approved_date IS NULL AND survey_approved_by IS NULL"
-		},
-		{
-			id: "all",
-			label: "All",
-			where: "1=1"
 		}
 	],
 
