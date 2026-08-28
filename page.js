@@ -19,6 +19,7 @@
 import esriConfig from "https://js.arcgis.com/4.31/@arcgis/core/config.js";
 import FeatureLayer from "https://js.arcgis.com/4.31/@arcgis/core/layers/FeatureLayer.js";
 import esriId from "https://js.arcgis.com/4.31/@arcgis/core/identity/IdentityManager.js";
+import { initAssignSheet, openAssignSheet } from "./assign.js";
 
 const CFG = window.APP_CONFIG;
 const $ = (id) => document.getElementById(id);
@@ -29,11 +30,6 @@ let ctrl = null; // { page, barEl, chipsEl, tableEl, layer, activeFilters }
 
 /* The column being edited in the shared filter modal. */
 let filterField = null;
-
-/* Surveyor coded-value options (Unassigned page only) + the row being
- * assigned in the sheet. */
-let surveyorOptions = []; // [{ code, name }]
-let assignTarget = null; // { oid, name, ref }
 
 /* ------------------------------------------------------------------------ *
  * Table construction
@@ -147,9 +143,12 @@ async function initTable() {
     const feature = featureFromCellEvent(event);
     const oid = objectIdFromCellEvent(event);
     if (oid == null) return;
-    // Unassigned rows open the assignment sheet; other pages open the detail page.
+    // Unassigned rows open the assignment sheet; In progress rows open the map
+    // view; the remaining pages open the read-only detail page.
     if (pageId === "unassigned") {
       openAssignSheet((feature && feature.attributes) || { objectid: oid });
+    } else if (pageId === "in-progress") {
+      goToMap(oid);
     } else {
       goToDetails(oid);
     }
@@ -267,120 +266,8 @@ function goToDetails(oid) {
   window.location.href = "detail.html?oid=" + encodeURIComponent(oid);
 }
 
-/* ------------------------------------------------------------------------ *
- * Assignment sheet (Unassigned page only)
- * ------------------------------------------------------------------------ */
-
-/** Load the surveyor list from the Facilities coded-value domain and fill the
- * Surveyor + Priority selects. */
-async function loadSurveyors() {
-  const layer = new FeatureLayer({ url: CFG.facilitiesLayerUrl });
-  await layer.load();
-  const field = layer.fields.find((f) => f.name === CFG.surveyorField);
-  const coded = (field && field.domain && field.domain.codedValues) || [];
-  surveyorOptions = coded.map((c) => ({ code: c.code, name: c.name }));
-
-  const surveyor = $("assign-surveyor");
-  surveyor.innerHTML = "";
-  surveyor.appendChild(makeOption("", "Select a surveyor…"));
-  surveyorOptions.forEach((s) => surveyor.appendChild(makeOption(s.code, s.name)));
-
-  const priority = $("assign-priority");
-  priority.innerHTML = "";
-  CFG.priorityOptions.forEach((p) => priority.appendChild(makeOption(p, p)));
-  priority.value = defaultPriority();
-}
-
-function makeOption(value, text) {
-  const opt = document.createElement("calcite-option");
-  opt.value = value;
-  opt.textContent = text;
-  return opt;
-}
-
-function defaultPriority() {
-  const list = CFG.priorityOptions;
-  return list[Math.floor(list.length / 2)] || list[0] || "";
-}
-
-function surveyorName(code) {
-  const s = surveyorOptions.find((x) => x.code === code);
-  return s ? s.name : code;
-}
-
-/** Open the assignment sheet for a project, with a clean form. */
-function openAssignSheet(attrs) {
-  const oid = attrs.objectid ?? attrs.OBJECTID;
-  assignTarget = {
-    oid,
-    name: attrs.name || "Project #" + oid,
-    ref: attrs.reference_number || ""
-  };
-  $("assign-subheading").textContent = assignTarget.name;
-  $("assign-surveyor").value = "";
-  $("assign-priority").value = defaultPriority();
-  $("assign-due").value = "";
-  $("assign-desc").value = "";
-  $("assign-sheet").open = true;
-}
-
-/** Wire the sheet's close / cancel / submit interactions once. */
-function wireAssignSheet() {
-  const close = () => ($("assign-sheet").open = false);
-  $("assign-close").addEventListener("click", close);
-  $("assign-cancel").addEventListener("click", close);
-  $("assign-submit").addEventListener("click", submitAssignment);
-}
-
-/** Validate (surveyor required) and submit the assignment to the server, which
- * updates the Facilities task fields + the project's surveyed_by. */
-async function submitAssignment() {
-  const surveyorCode = $("assign-surveyor").value;
-  if (!surveyorCode) {
-    alertUser("Surveyor required", "Please select a surveyor to assign.", "warning");
-    if ($("assign-surveyor").setFocus) $("assign-surveyor").setFocus();
-    return;
-  }
-  if (!assignTarget || !assignTarget.ref) {
-    alertUser("Missing reference", "This project has no reference number to match.", "danger");
-    return;
-  }
-
-  const payload = {
-    reference_number: assignTarget.ref,
-    surveyor: surveyorCode,
-    surveyor_name: surveyorName(surveyorCode),
-    priority: $("assign-priority").value || "",
-    due_date: $("assign-due").value || "",
-    description: $("assign-desc").value || ""
-  };
-
-  const submit = $("assign-submit");
-  submit.loading = true;
-  try {
-    const res = await fetch(CFG.assignmentEndpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-    const json = await res.json().catch(() => ({}));
-    if (!res.ok || json.error) {
-      throw new Error(json.error || `Request failed (${res.status}).`);
-    }
-
-    $("assign-sheet").open = false;
-    alertUser(
-      "Survey assigned",
-      `${assignTarget.name} assigned to ${surveyorName(surveyorCode)}.`,
-      "success"
-    );
-    // The project leaves Unassigned once surveyed_by is set — re-query the table.
-    if (ctrl.layer) ctrl.layer.refresh();
-  } catch (err) {
-    alertUser("Assignment failed", err.message, "danger");
-  } finally {
-    submit.loading = false;
-  }
+function goToMap(oid) {
+  window.location.href = "map.html?oid=" + encodeURIComponent(oid);
 }
 
 /* ------------------------------------------------------------------------ *
@@ -410,10 +297,14 @@ async function boot() {
     buildPane(pageConfig(pageId));
     wireFilterDialog();
 
-    // The assignment sheet only exists on the Unassigned page.
+    // The assignment sheet only exists on the Unassigned page. When a project
+    // is assigned it leaves Unassigned, so refresh the table on success.
     if ($("assign-sheet")) {
-      wireAssignSheet();
-      await loadSurveyors();
+      await initAssignSheet({
+        onAssigned: () => {
+          if (ctrl.layer) ctrl.layer.refresh();
+        }
+      });
     }
 
     await initTable();

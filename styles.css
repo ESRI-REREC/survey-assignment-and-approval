@@ -134,6 +134,48 @@ arcgis-feature-table [role="row"] {
 	color: var(--calcite-color-status-danger, #d83020);
 }
 
+/* ---- map view (map.html) ----------------------------------------------- */
+
+arcgis-map {
+	height: 100%;
+	width: 100%;
+	display: block;
+}
+
+/* Floating, closable survey panel over the left of the map. */
+.info-card {
+	position: absolute;
+	inset-block-start: 0.75rem;
+	inset-inline-start: 0.75rem;
+	inline-size: 22rem;
+	max-inline-size: calc(100vw - 1.5rem);
+	block-size: calc(100% - 1.5rem);
+	z-index: 10;
+	box-shadow: var(--calcite-shadow-md, 0 4px 16px rgba(0, 0, 0, 0.16));
+	border-radius: var(--calcite-border-radius, 4px);
+	overflow: hidden;
+	background: var(--calcite-color-foreground-1);
+}
+
+.info-card[hidden] {
+	display: none;
+}
+
+/* Reopen button (shown when the info panel is closed). */
+.info-reopen {
+	position: absolute;
+	inset-block-start: 0.75rem;
+	inset-inline-start: 0.75rem;
+	z-index: 10;
+	box-shadow: var(--calcite-shadow-md, 0 4px 16px rgba(0, 0, 0, 0.16));
+	background: var(--calcite-color-foreground-1);
+	border-radius: var(--calcite-border-radius, 4px);
+}
+
+.info-reopen[hidden] {
+	display: none;
+}
+
 /* ---- boot scrim -------------------------------------------------------- */
 
 #boot-scrim[hidden] {

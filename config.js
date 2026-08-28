@@ -17,11 +17,29 @@ window.APP_CONFIG = {
 	// The token is referer-bound — serve these pages from the matching origin.
 	serverUrl: "https://dev-server-rerec-poc.vercel.app",
 
-	// Facilities layer — source of the surveyor list. The assignment sheet's
-	// Surveyor <select> is populated from this field's coded-value domain.
+	// Facilities layer — source of the surveyor list AND the facility points the
+	// map view centres on (its reference_number matches a project's). The
+	// assignment sheet's Surveyor <select> is populated from this field's
+	// coded-value domain.
 	facilitiesLayerUrl:
 		"https://development.esriea.com/server/rest/services/Hosted/Facilities/FeatureServer/0",
 	surveyorField: "esritask_assignee",
+
+	// Survey & Design Assets feature service — every sublayer is added to the
+	// map view (map.html) and toggled through the layer list.
+	assetsServiceUrl:
+		"https://development.esriea.com/server/rest/services/Hosted/Survey_and_Design_Assets/FeatureServer",
+
+	// Map view settings (map.html).
+	mapBasemap: "hybrid",
+	// Fallback framing (Nairobi) used until — or if — the matching facility
+	// point is found; then the map centres on it at mapFacilityZoom.
+	mapFallbackCenter: [36.79037290204911, -1.2597187025957526],
+	mapFallbackZoom: 12,
+	mapFacilityZoom: 17,
+	// Asset sublayers (by service layer name) that start visible; the rest are
+	// switched on from the layer list.
+	mapDefaultVisibleLayers: ["suggested_route", "suggested_toff", "suggested_tx"],
 
 	// Priority options for the assignment sheet.
 	priorityOptions: ["Low", "Medium", "High"],
@@ -81,7 +99,17 @@ window.APP_CONFIG = {
 			// Assigned, but survey not completed or approved.
 			where:
 				"surveyed_by IS NOT NULL AND survey_completion_date IS NULL AND " +
-				"survey_approved_date IS NULL AND survey_approved_by IS NULL"
+				"survey_approved_date IS NULL AND survey_approved_by IS NULL",
+			// In progress drops Implementation Status and shows the assigned
+			// surveyor (surveyed_by) instead — filterable like the other text cols.
+			columns: [
+				{ field: "name", label: "Project Name", width: 200 },
+				{ field: "reference_number", label: "Reference No.", width: 150 },
+				{ field: "surveyed_by", label: "Surveyed By", width: 160 },
+				{ field: "funding_year", label: "Funding Year", width: 120 },
+				{ field: "initiator_category", label: "Initiator Category", width: 170 },
+				{ field: "funding_category", label: "Funding Category", width: 180 }
+			]
 		},
 		{
 			id: "completed",
@@ -103,8 +131,7 @@ window.APP_CONFIG = {
 				{ field: "implementation_status", label: "Implementation Status" },
 				{ field: "funding_year", label: "Funding Year" },
 				{ field: "initiator_category", label: "Initiator Category" },
-				{ field: "funding_category", label: "Funding Category" },
-				{ field: "constituency", label: "Constituency" }
+				{ field: "funding_category", label: "Funding Category" }
 			]
 		},
 		{
