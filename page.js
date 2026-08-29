@@ -129,7 +129,7 @@ function buildTableTemplate() {
 /** Initialise this page's FeatureLayer + table. */
 async function initTable() {
   ctrl.layer = new FeatureLayer({
-    url: CFG.projectsLayerUrl,
+    url: CFG.viewLayerUrl,
     outFields: ["*"],
     displayField: "project_name",
     definitionExpression: ctrl.page.where
@@ -144,11 +144,13 @@ async function initTable() {
     const oid = objectIdFromCellEvent(event);
     if (oid == null) return;
     // Unassigned rows open the assignment sheet; In progress rows open the map
-    // view; the remaining pages open the read-only detail page.
+    // view (with Reassign); Completed rows open the same map view (with Approve).
     if (pageId === "unassigned") {
       openAssignSheet((feature && feature.attributes) || { objectid: oid });
     } else if (pageId === "in-progress") {
-      goToMap(oid);
+      goToMap(oid, "reassign");
+    } else if (pageId === "completed") {
+      goToMap(oid, "approve");
     } else {
       goToDetails(oid);
     }
@@ -266,8 +268,9 @@ function goToDetails(oid) {
   window.location.href = "detail.html?oid=" + encodeURIComponent(oid);
 }
 
-function goToMap(oid) {
-  window.location.href = "map.html?oid=" + encodeURIComponent(oid);
+function goToMap(oid, mode) {
+  const q = "?oid=" + encodeURIComponent(oid);
+  window.location.href = "map.html" + q + (mode ? "&mode=" + encodeURIComponent(mode) : "");
 }
 
 /* ------------------------------------------------------------------------ *

@@ -32,7 +32,7 @@ function getOid() {
 
 async function fetchProject(oid) {
   const layer = new FeatureLayer({
-    url: CFG.projectsLayerUrl,
+    url: CFG.viewLayerUrl,
     outFields: ["*"]
   });
   await layer.load();

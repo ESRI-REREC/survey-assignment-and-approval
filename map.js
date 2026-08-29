@@ -1,11 +1,13 @@
 /* ---------------------------------------------------------------------------
  * map.js — in-progress survey map view (ES module).
  *
- * Opened from an In progress row (map.html?oid=<objectid>). Shows a full-page
- * map with:
- *   • a closable left panel of survey data (config.detailSections) + a Reassign
- *     button that opens the shared assignment sheet (assign.js, same endpoint);
- *   • every Survey_and_Design_Assets sublayer, toggled via the layer list;
+ * Opened from an In progress row (map.html?oid=<objectid>) or a Completed row
+ * (…&mode=approve). Shows a full-page map with:
+ *   • a closable left panel of survey data (config.detailSections) + either a
+ *     Reassign button (in progress → assign.js) or an Approve button
+ *     (completed → approve.js), depending on ?mode;
+ *   • a basemap gallery + every Survey_and_Design_Assets sublayer, toggled via
+ *     the layer list;
  *   • the view centred on the Facilities point whose reference_number matches
  *     the project's.
  * ------------------------------------------------------------------------- */
@@ -16,6 +18,7 @@ import GroupLayer from "https://js.arcgis.com/4.31/@arcgis/core/layers/GroupLaye
 import Graphic from "https://js.arcgis.com/4.31/@arcgis/core/Graphic.js";
 import esriId from "https://js.arcgis.com/4.31/@arcgis/core/identity/IdentityManager.js";
 import { initAssignSheet, openAssignSheet } from "./assign.js";
+import { initApproveSheet, openApproveSheet } from "./approve.js";
 
 const CFG = window.APP_CONFIG;
 const $ = (id) => document.getElementById(id);
@@ -44,8 +47,14 @@ function getOid() {
   return oid ? Number(oid) : null;
 }
 
+/** "approve" (from Completed) or "reassign" (from In progress; the default). */
+function getMode() {
+  const mode = new URLSearchParams(window.location.search).get("mode");
+  return mode === "approve" ? "approve" : "reassign";
+}
+
 async function fetchProject(oid) {
-  const layer = new FeatureLayer({ url: CFG.projectsLayerUrl, outFields: ["*"] });
+  const layer = new FeatureLayer({ url: CFG.viewLayerUrl, outFields: ["*"] });
   await layer.load();
   layer.fields.forEach((f) => (fieldTypes[f.name] = f.type));
 
@@ -245,8 +254,10 @@ function alertUser(title, message, kind) {
  * ------------------------------------------------------------------------ */
 
 async function boot() {
+  const mode = getMode();
+  const backHref = mode === "approve" ? "completed.html" : "in-progress.html";
   $("back-btn").addEventListener("click", () => {
-    window.location.href = "in-progress.html";
+    window.location.href = backHref;
   });
   $("info-panel").addEventListener("calcitePanelClose", () => setInfoOpen(false));
   $("info-reopen").addEventListener("click", () => setInfoOpen(true));
@@ -262,15 +273,30 @@ async function boot() {
     attrs = await fetchProject(oid);
     renderInfo();
 
-    // Reassign uses the same sheet + endpoint. On success, re-read the project
-    // so the panel reflects the new surveyor.
-    await initAssignSheet({
-      onAssigned: async () => {
-        attrs = await fetchProject(oid);
-        renderInfo();
-      }
-    });
-    $("reassign-btn").addEventListener("click", () => openAssignSheet(attrs));
+    if (mode === "approve") {
+      // Completed page: Approve the survey. Once approved the project leaves the
+      // Completed list, so return there on success.
+      initApproveSheet({
+        onApproved: () => {
+          setTimeout(() => (window.location.href = "completed.html"), 1200);
+        }
+      });
+      const approveBtn = $("approve-btn");
+      approveBtn.hidden = false;
+      approveBtn.addEventListener("click", () => openApproveSheet(attrs));
+    } else {
+      // In progress page: Reassign uses the same sheet + endpoint. On success,
+      // re-read the project so the panel reflects the new surveyor.
+      await initAssignSheet({
+        onAssigned: async () => {
+          attrs = await fetchProject(oid);
+          renderInfo();
+        }
+      });
+      const reassignBtn = $("reassign-btn");
+      reassignBtn.hidden = false;
+      reassignBtn.addEventListener("click", () => openAssignSheet(attrs));
+    }
 
     await customElements.whenDefined("arcgis-map");
     initMap();

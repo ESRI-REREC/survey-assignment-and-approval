@@ -48,6 +48,13 @@
 				<arcgis-expand position="top-right" mode="floating" expanded>
 					<arcgis-layer-list></arcgis-layer-list>
 				</arcgis-expand>
+				<arcgis-expand
+					position="top-right"
+					mode="floating"
+					icon="basemap"
+					group="top-right">
+					<arcgis-basemap-gallery></arcgis-basemap-gallery>
+				</arcgis-expand>
 			</arcgis-map>
 
 			<calcite-alert
@@ -89,8 +96,18 @@
 					slot="footer"
 					width="full"
 					icon-start="user-plus"
-					id="reassign-btn">
+					id="reassign-btn"
+					hidden>
 					Reassign surveyor
+				</calcite-button>
+				<calcite-button
+					slot="footer"
+					width="full"
+					kind="brand"
+					icon-start="check-circle"
+					id="approve-btn"
+					hidden>
+					Approve survey
 				</calcite-button>
 			</calcite-panel>
 		</div>
@@ -156,6 +173,55 @@
 				</calcite-button>
 				<calcite-button slot="footer-end" width="half" id="assign-submit">
 					Reassign
+				</calcite-button>
+			</calcite-panel>
+		</calcite-sheet>
+
+		<!-- Approve sheet — opened from the Approve button (Completed map page). -->
+		<calcite-sheet
+			id="approve-sheet"
+			position="inline-end"
+			width-scale="m"
+			aria-labelledby="approve-heading">
+			<calcite-panel>
+				<div slot="header-content" class="project-heading">
+					<span class="project-title" id="approve-heading">Approve survey</span>
+					<span class="project-ref" id="approve-subheading"></span>
+				</div>
+				<calcite-action
+					slot="header-actions-end"
+					icon="x"
+					text="Close"
+					id="approve-close"></calcite-action>
+
+				<div class="sheet-body">
+					<calcite-label>
+						Approved by <span class="req">*</span>
+						<calcite-input
+							id="approve-by"
+							placeholder="Name of approving officer…"></calcite-input>
+					</calcite-label>
+					<calcite-label>
+						Approval date
+						<calcite-input-date-picker
+							id="approve-date"></calcite-input-date-picker>
+					</calcite-label>
+				</div>
+
+				<calcite-button
+					slot="footer-start"
+					appearance="outline"
+					kind="neutral"
+					width="half"
+					id="approve-cancel">
+					Cancel
+				</calcite-button>
+				<calcite-button
+					slot="footer-end"
+					kind="brand"
+					width="half"
+					id="approve-submit">
+					Approve
 				</calcite-button>
 			</calcite-panel>
 		</calcite-sheet>
