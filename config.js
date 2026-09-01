@@ -1,33 +1,27 @@
 /* ---------------------------------------------------------------------------
  * config.js — settings for the Survey Assignment & Approval UI.
  *
- * The tables + info panels read a secured joined Projects × Facilities view
- * (viewLayerUrl) so they can show/filter county, constituency and ward. All
+ * The tables + info panels read the secured electrification_projects layer. All
  * tables are scoped to the Survey stage (implementation_status = 'Survey');
  * approving a survey advances the project to 'Design', dropping it from view.
- * No credentials in the browser: auth.js fetches a short-lived token.
+ * The user signs in with their own portal account (oauth.js).
  * ------------------------------------------------------------------------- */
 
 window.APP_CONFIG = {
 	portalUrl: "https://development.esriea.com/portal",
 	serverRestUrl: "https://development.esriea.com/server/rest/services",
 
-	// The Projects hosted table (non-spatial). Kept for reference; the survey
-	// workflow now reads the joined view below (which carries the facility's
-	// county/constituency/ward alongside the project fields).
+	// OAuth 2.0 app id (client_id) for named-user sign-in. The signed-in user is
+	// recorded as the assigner (survey_assign_by). Reuses a registered browser app
+	// whose redirect URIs include this app's serving origin.
+	oauthAppId: "3ZypIQiiQI4YQBz2",
+
+	// The Projects hosted table (non-spatial). The tables + detail/map panels read
+	// from this directly. (The joined view was removed; county / constituency /
+	// ward are facility fields and no longer shown here.) Writes still go through
+	// the server endpoints to the base Facilities / Projects layers.
 	projectsLayerUrl:
 		"https://development.esriea.com/server/rest/services/Hosted/electrification_projects/FeatureServer/0",
-
-	// Joined Projects × Facilities view (non-spatial). Every table + the detail /
-	// map info panels read from this so they can show/filter the facility's
-	// county, constituency and ward next to the project fields. It exposes the
-	// project fields (project_name, project_reference_number, surveyed_by,
-	// survey_*_date/by, implementation_status, funding_*) AND the facility fields
-	// (county, constituency, ward, reference_number, esritask_*). Its own
-	// `objectid` keys the detail / map lookups. Writes still go through the
-	// server endpoints to the base Facilities / Projects layers, not this view.
-	viewLayerUrl:
-		"https://development.esriea.com/server/rest/services/Hosted/Electrification_Projects_and_Facilities/FeatureServer/0",
 
 	// Token server (../server). Holds the credentials, exposes GET /api/token.
 	// The token is referer-bound — serve these pages from the matching origin.
@@ -55,7 +49,11 @@ window.APP_CONFIG = {
 	mapFacilityZoom: 17,
 	// Asset sublayers (by service layer name) that start visible; the rest are
 	// switched on from the layer list.
-	mapDefaultVisibleLayers: ["suggested_route", "suggested_toff", "suggested_tx"],
+	mapDefaultVisibleLayers: [
+		"suggested_route",
+		"suggested_toff",
+		"suggested_tx"
+	],
 
 	// Priority options for the assignment sheet.
 	priorityOptions: ["Low", "Medium", "High"],
@@ -98,7 +96,11 @@ window.APP_CONFIG = {
 			// added date. (add_date is a date field, so it is not text-filterable.)
 			columns: [
 				{ field: "project_name", label: "Project Name", width: 200 },
-				{ field: "project_reference_number", label: "Reference No.", width: 150 },
+				{
+					field: "project_reference_number",
+					label: "Reference No.",
+					width: 150
+				},
 				{
 					field: "add_date",
 					label: "Added Date",
@@ -112,10 +114,7 @@ window.APP_CONFIG = {
 					label: "Initiator Category",
 					width: 170
 				},
-				{ field: "funding_category", label: "Funding Category", width: 180 },
-				{ field: "county", label: "County", width: 130 },
-				{ field: "constituency", label: "Constituency", width: 150 },
-				{ field: "ward", label: "Ward", width: 150 }
+				{ field: "funding_category", label: "Funding Category", width: 180 }
 			]
 		},
 		{
@@ -130,14 +129,19 @@ window.APP_CONFIG = {
 			// surveyor (surveyed_by) instead — filterable like the other text cols.
 			columns: [
 				{ field: "project_name", label: "Project Name", width: 200 },
-				{ field: "project_reference_number", label: "Reference No.", width: 150 },
+				{
+					field: "project_reference_number",
+					label: "Reference No.",
+					width: 150
+				},
 				{ field: "surveyed_by", label: "Surveyed By", width: 160 },
 				{ field: "funding_year", label: "Funding Year", width: 120 },
-				{ field: "initiator_category", label: "Initiator Category", width: 170 },
-				{ field: "funding_category", label: "Funding Category", width: 180 },
-				{ field: "county", label: "County", width: 130 },
-				{ field: "constituency", label: "Constituency", width: 150 },
-				{ field: "ward", label: "Ward", width: 150 }
+				{
+					field: "initiator_category",
+					label: "Initiator Category",
+					width: 170
+				},
+				{ field: "funding_category", label: "Funding Category", width: 180 }
 			]
 		},
 		{
@@ -152,7 +156,11 @@ window.APP_CONFIG = {
 			// context an approver needs. Clicking a row opens the map with Approve.
 			columns: [
 				{ field: "project_name", label: "Project Name", width: 200 },
-				{ field: "project_reference_number", label: "Reference No.", width: 150 },
+				{
+					field: "project_reference_number",
+					label: "Reference No.",
+					width: 150
+				},
 				{ field: "surveyed_by", label: "Surveyed By", width: 160 },
 				{
 					field: "survey_completion_date",
@@ -162,10 +170,7 @@ window.APP_CONFIG = {
 					dateFormat: "short-date"
 				},
 				{ field: "funding_year", label: "Funding Year", width: 120 },
-				{ field: "funding_category", label: "Funding Category", width: 180 },
-				{ field: "county", label: "County", width: 130 },
-				{ field: "constituency", label: "Constituency", width: 150 },
-				{ field: "ward", label: "Ward", width: 150 }
+				{ field: "funding_category", label: "Funding Category", width: 180 }
 			]
 		}
 	],
@@ -191,16 +196,6 @@ window.APP_CONFIG = {
 				{ field: "survey_completion_date", label: "Survey Completion Date" },
 				{ field: "survey_approved_by", label: "Survey Approved By" },
 				{ field: "survey_approved_date", label: "Survey Approved Date" }
-			]
-		},
-		{
-			// From the joined view — the facility's administrative area.
-			title: "Location",
-			icon: "pin",
-			fields: [
-				{ field: "county", label: "County" },
-				{ field: "constituency", label: "Constituency" },
-				{ field: "ward", label: "Ward" }
 			]
 		}
 	]

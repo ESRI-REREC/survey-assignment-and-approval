@@ -8,7 +8,7 @@
 
 import esriConfig from "https://js.arcgis.com/4.31/@arcgis/core/config.js";
 import FeatureLayer from "https://js.arcgis.com/4.31/@arcgis/core/layers/FeatureLayer.js";
-import esriId from "https://js.arcgis.com/4.31/@arcgis/core/identity/IdentityManager.js";
+import { ensureSignedIn } from "./oauth.js";
 
 const CFG = window.APP_CONFIG;
 const $ = (id) => document.getElementById(id);
@@ -32,7 +32,7 @@ function getOid() {
 
 async function fetchProject(oid) {
   const layer = new FeatureLayer({
-    url: CFG.viewLayerUrl,
+    url: CFG.projectsLayerUrl,
     outFields: ["*"]
   });
   await layer.load();
@@ -125,8 +125,7 @@ async function boot() {
     if (oid == null) throw new Error("No project id in the URL (?oid=…).");
 
     esriConfig.portalUrl = CFG.portalUrl;
-    Auth.setIdentityManager(esriId);
-    await Auth.mint();
+    await ensureSignedIn();
 
     const attrs = await fetchProject(oid);
     renderHeader(attrs);

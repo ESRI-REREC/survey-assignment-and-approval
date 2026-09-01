@@ -18,7 +18,7 @@
 
 import esriConfig from "https://js.arcgis.com/4.31/@arcgis/core/config.js";
 import FeatureLayer from "https://js.arcgis.com/4.31/@arcgis/core/layers/FeatureLayer.js";
-import esriId from "https://js.arcgis.com/4.31/@arcgis/core/identity/IdentityManager.js";
+import { ensureSignedIn } from "./oauth.js";
 import { initAssignSheet, openAssignSheet } from "./assign.js";
 
 const CFG = window.APP_CONFIG;
@@ -129,7 +129,7 @@ function buildTableTemplate() {
 /** Initialise this page's FeatureLayer + table. */
 async function initTable() {
   ctrl.layer = new FeatureLayer({
-    url: CFG.viewLayerUrl,
+    url: CFG.projectsLayerUrl,
     outFields: ["*"],
     displayField: "project_name",
     definitionExpression: ctrl.page.where
@@ -292,8 +292,7 @@ function alertUser(title, message, kind) {
 async function boot() {
   try {
     esriConfig.portalUrl = CFG.portalUrl;
-    Auth.setIdentityManager(esriId);
-    await Auth.mint();
+    await ensureSignedIn();
 
     await customElements.whenDefined("arcgis-feature-table");
 

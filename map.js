@@ -16,7 +16,7 @@ import esriConfig from "https://js.arcgis.com/4.31/@arcgis/core/config.js";
 import FeatureLayer from "https://js.arcgis.com/4.31/@arcgis/core/layers/FeatureLayer.js";
 import GroupLayer from "https://js.arcgis.com/4.31/@arcgis/core/layers/GroupLayer.js";
 import Graphic from "https://js.arcgis.com/4.31/@arcgis/core/Graphic.js";
-import esriId from "https://js.arcgis.com/4.31/@arcgis/core/identity/IdentityManager.js";
+import { ensureSignedIn, getServerToken } from "./oauth.js";
 import { initAssignSheet, openAssignSheet } from "./assign.js";
 import { initApproveSheet, openApproveSheet } from "./approve.js";
 
@@ -54,7 +54,7 @@ function getMode() {
 }
 
 async function fetchProject(oid) {
-  const layer = new FeatureLayer({ url: CFG.viewLayerUrl, outFields: ["*"] });
+  const layer = new FeatureLayer({ url: CFG.projectsLayerUrl, outFields: ["*"] });
   await layer.load();
   layer.fields.forEach((f) => (fieldTypes[f.name] = f.type));
 
@@ -141,7 +141,7 @@ function setInfoOpen(open) {
 /** Add every Survey_and_Design_Assets sublayer as a toggleable feature layer,
  * grouped so the layer list stays tidy. */
 async function loadAssetLayers(map) {
-  const token = await Auth.valid();
+  const token = await getServerToken();
   const res = await fetch(
     CFG.assetsServiceUrl + "?f=json&token=" + encodeURIComponent(token)
   );
@@ -267,8 +267,7 @@ async function boot() {
     if (oid == null) throw new Error("No project id in the URL (?oid=…).");
 
     esriConfig.portalUrl = CFG.portalUrl;
-    Auth.setIdentityManager(esriId);
-    await Auth.mint();
+    await ensureSignedIn();
 
     attrs = await fetchProject(oid);
     renderInfo();

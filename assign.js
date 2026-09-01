@@ -14,6 +14,7 @@
  * ------------------------------------------------------------------------- */
 
 import FeatureLayer from "https://js.arcgis.com/4.31/@arcgis/core/layers/FeatureLayer.js";
+import { getUsername } from "./oauth.js";
 
 const CFG = window.APP_CONFIG;
 const $ = (id) => document.getElementById(id);
@@ -116,6 +117,7 @@ async function submitAssignment() {
     reference_number: assignTarget.ref,
     surveyor: surveyorCode,
     surveyor_name: surveyorName(surveyorCode),
+    assigned_by: getUsername() || "",
     priority: $("assign-priority").value || "",
     due_date: $("assign-due").value || "",
     description: $("assign-desc").value || ""
