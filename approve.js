@@ -1,84 +1,55 @@
 /* ---------------------------------------------------------------------------
- * approve.js — the "approve survey" sheet, used on the Completed map page.
+ * approve.js — direct "approve survey" action (Completed map page).
  *
- * Mirrors assign.js: the map page (map.js) opens this sheet from the Approve
- * button and posts to config.approvalEndpoint. The server sets the Facilities
- * esritask_status to Completed and records survey_approved_by +
- * survey_approved_date on the project. Usage:
+ * No sheet: clicking Approve immediately records the signed-in user
+ * (survey_approved_by) and the current time (survey_approved_date, set by the
+ * server) via config.approvalEndpoint. The server also sets the Facilities
+ * esritask_status to Completed. Usage:
  *
- *     import { initApproveSheet, openApproveSheet } from "./approve.js";
- *     await initApproveSheet({ onApproved: (target) => { ... } });
- *     openApproveSheet(projectAttributes);   // on the Approve button click
+ *     import { approveSurvey } from "./approve.js";
+ *     approveSurvey(projectAttributes, { onApproved: () => { ... } });
  * ------------------------------------------------------------------------- */
+
+import { getUsername } from "./oauth.js";
 
 const CFG = window.APP_CONFIG;
 const $ = (id) => document.getElementById(id);
 
-let approveTarget = null; // { oid, name, ref }
-let onApprovedCb = null;
-
-/** Wire the sheet's close / cancel / submit interactions. Call once. */
-export function initApproveSheet({ onApproved } = {}) {
-  onApprovedCb = onApproved || null;
-  const close = () => ($("approve-sheet").open = false);
-  $("approve-close").addEventListener("click", close);
-  $("approve-cancel").addEventListener("click", close);
-  $("approve-submit").addEventListener("click", submitApproval);
-}
-
-/** Open the approval sheet for a project, with a clean form (date = today). */
-export function openApproveSheet(attrs) {
-  const oid = attrs.objectid ?? attrs.OBJECTID;
-  approveTarget = {
-    oid,
-    name: attrs.project_name || "Project #" + oid,
-    ref: attrs.project_reference_number || ""
-  };
-  $("approve-subheading").textContent = approveTarget.name;
-  $("approve-by").value = "";
-  $("approve-date").value = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-  $("approve-sheet").open = true;
-}
-
-/** Validate (approver required) and submit the approval to the server. */
-async function submitApproval() {
-  const approvedBy = ($("approve-by").value || "").trim();
+/** Approve the survey for `attrs` (the joined/project row). Records the
+ * signed-in user + now; calls onApproved on success. */
+export async function approveSurvey(attrs, { onApproved } = {}) {
+  const ref = attrs.project_reference_number || "";
+  const approvedBy = getUsername();
+  if (!ref) {
+    return alertUser("Missing reference", "This project has no reference number to match.", "danger");
+  }
   if (!approvedBy) {
-    alertUser("Approver required", "Enter the name of the approving officer.", "warning");
-    if ($("approve-by").setFocus) $("approve-by").setFocus();
-    return;
-  }
-  if (!approveTarget || !approveTarget.ref) {
-    alertUser("Missing reference", "This project has no reference number to match.", "danger");
-    return;
+    return alertUser("Not signed in", "Could not determine the signed-in user.", "danger");
   }
 
-  const payload = {
-    reference_number: approveTarget.ref,
-    approved_by: approvedBy,
-    approved_date: $("approve-date").value || ""
-  };
-
-  const submit = $("approve-submit");
-  submit.loading = true;
+  const btn = $("approve-btn");
+  if (btn) btn.loading = true;
   try {
     const res = await fetch(CFG.approvalEndpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
+      // approved_date is omitted — the server records the current time.
+      body: JSON.stringify({ reference_number: ref, approved_by: approvedBy })
     });
     const json = await res.json().catch(() => ({}));
     if (!res.ok || json.error) {
       throw new Error(json.error || `Request failed (${res.status}).`);
     }
-
-    $("approve-sheet").open = false;
-    alertUser("Survey approved", `${approveTarget.name} marked as approved.`, "success");
-    if (onApprovedCb) onApprovedCb(approveTarget);
+    alertUser(
+      "Survey approved",
+      `${attrs.project_name || "Project"} approved by ${approvedBy}.`,
+      "success"
+    );
+    if (onApproved) onApproved();
   } catch (err) {
     alertUser("Approval failed", err.message, "danger");
   } finally {
-    submit.loading = false;
+    if (btn) btn.loading = false;
   }
 }
 

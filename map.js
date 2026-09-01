@@ -4,8 +4,9 @@
  * Opened from an In progress row (map.html?oid=<objectid>) or a Completed row
  * (…&mode=approve). Shows a full-page map with:
  *   • a closable left panel of survey data (config.detailSections) + either a
- *     Reassign button (in progress → assign.js) or an Approve button
- *     (completed → approve.js), depending on ?mode;
+ *     Reassign button (in progress → assign.js sheet) or an Approve button
+ *     (completed → approve.js, which approves directly with the signed-in user
+ *     + current time — no sheet), depending on ?mode;
  *   • a basemap gallery + every Survey_and_Design_Assets sublayer, toggled via
  *     the layer list;
  *   • the view centred on the Facilities point whose reference_number matches
@@ -18,7 +19,7 @@ import GroupLayer from "https://js.arcgis.com/4.31/@arcgis/core/layers/GroupLaye
 import Graphic from "https://js.arcgis.com/4.31/@arcgis/core/Graphic.js";
 import { ensureSignedIn, getServerToken } from "./oauth.js";
 import { initAssignSheet, openAssignSheet } from "./assign.js";
-import { initApproveSheet, openApproveSheet } from "./approve.js";
+import { approveSurvey } from "./approve.js";
 
 const CFG = window.APP_CONFIG;
 const $ = (id) => document.getElementById(id);
@@ -273,16 +274,16 @@ async function boot() {
     renderInfo();
 
     if (mode === "approve") {
-      // Completed page: Approve the survey. Once approved the project leaves the
-      // Completed list, so return there on success.
-      initApproveSheet({
-        onApproved: () => {
-          setTimeout(() => (window.location.href = "completed.html"), 1200);
-        }
-      });
+      // Completed page: approve directly — no sheet. Records the signed-in user
+      // + now, then returns to the Completed list (the row drops out).
       const approveBtn = $("approve-btn");
       approveBtn.hidden = false;
-      approveBtn.addEventListener("click", () => openApproveSheet(attrs));
+      approveBtn.addEventListener("click", () =>
+        approveSurvey(attrs, {
+          onApproved: () =>
+            setTimeout(() => (window.location.href = "completed.html"), 1200)
+        })
+      );
     } else {
       // In progress page: Reassign uses the same sheet + endpoint. On success,
       // re-read the project so the panel reflects the new surveyor.
